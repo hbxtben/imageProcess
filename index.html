@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数字图像处理</title>
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+<body>
+    <header>
+        <img class="header-img" src="./image/html5.jpeg" alt="">
+        <div class="header-right">
+            <h1>数字图像处理</h1>
+            <p>张子鹏，赵一博，张全龙</p>
+        </div>
+    </header>
+    <nav>
+        <div id="openImg" class="nav-item">
+            <div class="nav-down-item open-config">打开位图</div>
+            <div class="nav-hidden">
+                <div id="BMPwt" class="nav-down-item open-config remove-effect">BMP位图</div>
+                <div id="JPEGwt" class="nav-down-item open-config remove-effect">JPEG位图</div>
+            </div>
+        </div>
+        <div id="transform" class="nav-item">
+            <div class="nav-down-item open-config">几何变换</div>
+            <div class="nav-hidden">
+                <div id="translate" class="nav-down-item open-config remove-effect">位图平移</div>
+                <div id="mirror" class="nav-down-item remove-effect">位图镜像</div>
+                <div id="transpos" class="nav-down-item remove-effect">位图转置</div>
+                <div id="scale" class="nav-down-item open-config remove-effect">位图缩放</div>
+                <div id="rotate" class="nav-down-item open-config remove-effect">位图旋转</div>
+            </div>
+        </div>
+        <div id="grayChange" class="nav-item">
+            <div id="gray" class="nav-down-item open-config">灰度变换</div>
+            <div class="nav-hidden">
+                <div id="yuzhi" class="nav-down-item open-config remove-effect">阈值变换</div>
+                <div id="xianxing" class="nav-down-item open-config remove-effect">线性变换</div>
+                <div id="lashen" class="nav-down-item open-config remove-effect">拉伸变换</div>
+                <div id="fxx" class="nav-down-item open-config remove-effect">非线性变换</div>
+                <div id="junheng" class="nav-down-item open-config remove-effect">均衡变换</div>
+            </div>
+        </div>
+    </nav>
+    <div id="config">
+        <div id="config-items"></div>
+        <span class="config-up pointer">收起</span>
+    </div>
+    <div class="show-wrap">
+        <div class="show">
+            <img id="preImg" src="" alt="修改前图片">
+        </div>
+        <div class="show">
+                <img id="afterImg" src="" alt="修改后图片">
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="./js/echarts.min.js"></script>
+<script type="text/javascript" src="./js/vintage.js"></script>
+<script type="text/javascript" src="./js/myimage-1.2.js"></script>
+<script type="text/javascript" src="./js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="./js/index.js"></script>
+</html>

@@ -1,0 +1,282 @@
+* {  margin: 0;  padding: 0;  border: 0;  font:12px/1.5tahoma, arial, \5b8b\4f53;  outline: none;}
+a {  text-decoration: none;color: #8c8c8c;  }
+a:hover {  text-decoration:underline;  }
+h1, h2, h3, h4, h5, h6{ font-size:100%; }
+ul, ol { list-style:none; }
+sup { vertical-align:text-top; }
+sub{ vertical-align:text-bottom; }
+fieldset, img { border:0; }
+button, input, select, textarea { font-size:100%;}
+.pointer { cursor: pointer; }
+
+html,body {
+    width: 100%;
+    height: 100%;
+}
+
+header,nav,.show-wrap,#config{
+    width: 1120px;
+    min-width: 1010px;
+    margin: 0 auto;
+}
+header {
+    height: 200px;
+    overflow: hidden;
+}
+
+.header-img {
+    width: 130px;
+    height: 130px;
+    float: left;
+    position: relative;
+    top: 50%;
+    transform: translate(0,-50%);
+    margin-left: 50px;
+}
+
+.header-right {
+    width: 600px;
+    height: 200px;
+    float: right;
+    animation: fontcolor 3s infinite;
+}
+
+@keyframes fontcolor {
+    0% { color: #00b3ee; }
+    30% { color: #E6E6FA; }
+    75% { color: #FF9900; }
+    100% { color: #00b3ee; }
+}
+
+.header-right h1 {
+    font-family: monospace;
+    font-size: 55px;
+    height: 110px;
+    line-height: 110px;
+}
+
+.header-right p {
+    font-size: 18px;
+    height: 90px;
+    line-height: 90px;
+    margin-left: 230px;
+}
+
+
+/*导航栏开始*/
+nav {
+    height: 40px;
+    background: #dfdfdf;
+    letter-spacing: -6px;
+}
+
+nav div {
+    cursor: pointer;
+}
+
+.nav-item {
+    letter-spacing: 0;
+    width: 120px;
+    height: 40px;
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    z-index: 100;
+}
+.nav-item:hover .nav-hidden {
+    display: block;
+}
+
+.nav-down-item {
+    background: #313137;
+    color: white;
+    width: 120px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+}
+
+.nav-down-item:hover {
+    background: #000000;
+}
+
+.nav-hidden {
+    display: none;
+}
+/*导航栏结束*/
+
+/*控制面板*/
+#config {
+    height: 180px;
+    border: 1px solid #000000;
+    border-top: 0;
+    box-sizing: border-box;
+    padding: 30px 70px;
+    position: relative;
+    display: none;
+}
+
+.config-up {
+    display: block;
+    position: absolute;
+    padding: 3px 8px;
+    width: 33px;
+    border-radius: 5px;
+    background: #dfdfdf;
+    left: 100%;
+    top:100%;
+    transform: translate(-100%,-100%);
+}
+
+#config-items {
+    width: 100%;
+    height: 100%;
+}
+
+#config-items button {
+    padding: 3px 8px;
+    border-radius: 3px;
+    color: #fff;
+    background: #313137;
+    margin-left: 30px;
+    cursor: pointer;
+}
+
+#config-items input {
+    box-sizing: border-box;
+    height: 28px;
+    padding: 3px;
+    border: 1px solid #313137;
+    border-radius: 5px;
+}
+/*面板部分开始*/
+.show-wrap {
+    margin-top: 25px;
+    height: 680px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.show {
+    width: 550px;
+    height: 650px;
+    background: #FFFFFF;
+    border: 1px solid #000000;
+    box-shadow: -5px 5px 5px #888888;
+    position: relative;
+    overflow: hidden;
+}
+
+.show > img {
+    max-width: 550px;
+    max-height: 650px;
+}
+
+#afterImg {
+    position: absolute;
+}
+
+/*平移*/
+.imgRight {
+    left: 100%;
+    transition: transform 1s ease-in-out;
+}
+.imgLeft {
+    left: 0;
+    transition: transform 1s ease-in-out;
+}
+.transTop {
+    animation: transtop 1s;
+}
+
+@keyframes transtop {
+    from {top: 100%;}
+    to {top: 0;}
+}
+
+.transBottom {
+    animation: transbottom 1s;
+}
+
+@keyframes transbottom {
+    from {top: -100%;}
+    to {top: 0;}
+}
+
+/*镜像 */
+.mirror {
+    transform: scaleX(-1);
+}
+
+/*转置*/
+.transp {
+    transform: rotate(-90deg) scaleX(-1);
+}
+
+.scale {
+    left: 0;
+    transition: transform 1s;
+}
+
+.rotate {
+    left: 0;
+    top: 50%;
+    margin-top: -30%;
+    transition: transform 1s;
+}
+
+/*非线性*/
+.fxx {
+    height: 30px;
+    line-height: 30px;
+}
+.fxx input {
+    vertical-align: bottom;
+}
+/*灰度直方图部分 */
+#zftBtn {
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 10px;
+    background: #313137;
+    position: absolute;
+    left: 800px;
+    top: 80px;
+}
+
+#zftWrap {
+    display: none;
+    z-index: 100;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.9;
+    background: black;
+}
+
+#zft {
+    width: 600px;
+    height: 500px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    opacity: 1;
+}
+
+/*下载按钮*/
+#download {
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 10px;
+    background: #313137;
+    position: absolute;
+    left: 800px;
+    top: 120px;
+}
+/*面板部分结束*/
