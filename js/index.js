@@ -143,7 +143,6 @@ $(function() {
                 break;
             }
         }
-
         //直方图部分
         var zftBtn = "<div id='zftBtn'>灰度直方图</div>",
             zft = "<div id='zftWrap'><div id='zft'></div></div>";
@@ -157,6 +156,33 @@ $(function() {
         $("#download").click(eventUtil.download);
     });
 
+    $("#smoothChange").click(function(event){
+        var method = event.target.id;
+        switch (method) {
+            case 'gsSmooth' : {
+                var nodeInput = "<input id='gsSmooth' type='text' placeholder='高斯平滑值'>",
+                    node = "<button type='button' id='gsBtn'>提交</button>";
+                $("#config-items").append(nodeInput).append(node);
+
+                $("#gsBtn").click(eventUtil.gsSmooth);
+                break;
+            }
+            case 'simSmooth' : {
+                var preimg = document.getElementById("preImg"),
+                    afterimg = document.getElementById("afterImg");
+
+                $AI(preimg).ctx(calUtils.HDChange).ctx(calUtils.simSmooth).replace(afterimg);
+                break;
+            }
+            case 'midSmooth' : {
+                var preimg = document.getElementById("preImg"),
+                    afterimg = document.getElementById("afterImg");
+
+                $AI(preimg).ctx(calUtils.HDChange).ctx(calUtils.midSmooth).replace(afterimg);
+                break;
+            }
+        }
+    });
 
 
 
@@ -277,6 +303,16 @@ $(function() {
                 $("#zftWrap").hide();
             });
             calUtils.zftShow();
+        },
+
+        //高斯处理
+        gsSmooth : function(){
+            var preimg = document.getElementById("preImg"),
+                afterimg = document.getElementById("afterImg");
+            var value = $("#gsSmooth")[0].value;
+
+            var result = $AI(preimg).act("toGray").act("gaussBlur",value).replace(afterimg);
+            console.log(result);
         }
     };
 
@@ -410,12 +446,83 @@ $(function() {
             };
             // 使用刚指定的配置项和数据显示图表。
             myChart.setOption(option);
+        },
+
+        //****************************
+        //得到坐标系中的某个像素点的灰度值
+        getPoint : function(imageData, width, x, y) {
+            var index = y * width + x;
+            var result = imageData[index * 4];
+            return result;
+        },
+
+        //设置坐标系中某个像素点的灰度值
+        setPoint : function(imageData, width, x, y, value) {
+            var index = y * width + x;
+            imageData[index * 4] = value;
+            imageData[index * 4 + 1] = value;
+            imageData[index * 4 + 2] = value;
+        },
+
+        //模板2 均值平滑
+        //   [ 1, 1, 1
+        //     1, 0, 1
+        //     1, 1, 1 ] * 1/8
+        simSmooth : function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+
+
+            for(var y = 1 ; y < height-1 ; y++) {
+                for(var x = 1 ; x < width-1 ; x++) {
+                    avg = (calUtils.getPoint(imageData, width, x-1, y-1)
+                        + calUtils.getPoint(imageData, width, x, y-1)
+                        + calUtils.getPoint(imageData, width, x+1, y-1)
+                        + calUtils.getPoint(imageData, width, x -1, y)
+                        + calUtils.getPoint(imageData, width, x+1, y)
+                        + calUtils.getPoint(imageData, width, x-1, y+1)
+                        + calUtils.getPoint(imageData, width, x, y+1)
+                        + calUtils.getPoint(imageData, width, x+1, y+1))/8;
+                    calUtils.setPoint(imageData, width, x, y, avg);
+                }
+            }
+
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        //中值平滑
+        midSmooth : function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+
+
+            for(var y = 1 ; y < height-1 ; y++) {
+                for(var x = 1 ; x < width-1 ; x++) {
+                    var list = [calUtils.getPoint(imageData, width, x-1, y-1)
+                        ,calUtils.getPoint(imageData, width, x, y-1)
+                        ,calUtils.getPoint(imageData, width, x+1, y-1)
+                        ,calUtils.getPoint(imageData, width, x-1, y)
+                        ,calUtils.getPoint(imageData, width, x,y)
+                        ,calUtils.getPoint(imageData, width, x+1, y)
+                        ,calUtils.getPoint(imageData, width, x-1, y+1)
+                        ,calUtils.getPoint(imageData, width, x, y+1)
+                        ,calUtils.getPoint(imageData, width, x+1, y+1)];
+                    //降序排序
+                    list.sort(function(a,b){
+                        return b - a;
+                    });
+                    calUtils.setPoint(imageData, width, x, y, list[5]);
+                }
+            }
+
+            this.putImageData(imageSrc, 0, 0);
         }
     }
 });
-
-
-
 
 
 
