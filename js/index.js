@@ -1,5 +1,11 @@
 $(function() {
     //控制面板上划
+
+    //原图-preImg 操作后图-afterImg
+    var preImg = document.getElementById("preImg");
+    var afterImg = document.getElementById("afterImg");
+
+
     $(".config-up").click(function () {
         $("#config").slideUp(200);
     });
@@ -185,6 +191,43 @@ $(function() {
     });
 
 
+    $("#sharpChange").click(function(event) {
+        var method = event.target.id;
+        switch (method) {
+            case 'marge': {
+                var nodeInput = "<input id='margeNum' type='text' placeholder='常规锐化大小'>",
+                    node = "<button type='button' id='margeNumbtn'>提交</button>";
+                $("#config-items").append(nodeInput).append(node);
+
+                $("#margeNumbtn").click(eventUtil.marge);
+                break;
+            }
+
+            case "laplace": {
+                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).replace(afterImg);
+                break;
+            }
+
+            case "gsLaplace": {
+                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.gsLaplace).replace(afterImg);
+                break;
+            }
+
+            case "sobel": {
+                var node1 = "<button type='button' id='sobelNomal'>正常边缘检测</button>",
+                    node2 = "<button type='button' id='sobel45'>45/135度</button>";
+                $("#config-items").append(node1).append(node2);
+
+                $("#sobelNomal").click(function() {
+                    $AI(preImg).ctx(calUtils.HDChange).ctx(function(){this.state = 1;}).ctx(calUtils.sobel).replace(afterImg);
+                });
+                $("#sobel45").click(function() {
+                    $AI(preImg).ctx(calUtils.HDChange).ctx(function(){this.state = 2;}).ctx(calUtils.sobel).replace(afterImg);
+                });
+                break;
+            }
+        }
+    });
 
 
     //**********事件工具集**********
@@ -307,13 +350,19 @@ $(function() {
 
         //高斯处理
         gsSmooth : function(){
-            var preimg = document.getElementById("preImg"),
-                afterimg = document.getElementById("afterImg");
             var value = $("#gsSmooth")[0].value;
 
             var result = $AI(preimg).act("toGray").act("gaussBlur",value).replace(afterimg);
             console.log(result);
-        }
+        },
+
+        //常规锐化
+        marge: function() {
+            var value = $("#margeNum")[0].value;
+
+            $AI(preImg).act("toGray").act("sharp", value).replace(afterImg);
+        },
+
     };
 
 
@@ -462,6 +511,54 @@ $(function() {
             imageData[index * 4] = value;
             imageData[index * 4 + 1] = value;
             imageData[index * 4 + 2] = value;
+            imageData[index * 4 + 3] = 255;
+        },
+
+        /**
+         * 求卷积
+         * @param pattern 卷积核，当前只支持3*3 ,对于高斯-laplace中的5*5算子还木有兼容
+         * @param preData 原图像中对应的像素点序列
+         */
+        juanji : function(pattern, preData) {
+            var sum = 0;
+            var len = pattern.length;
+            for(var i = 0 ; i < len ; i++) {
+                sum += pattern[i] * preData[i];
+            }
+
+            return sum;
+        },
+
+        // //获取像素点包括周围序列原方法
+        // getList : function(imageData, width, x, y) {
+        //     var list = [calUtils.getPoint(imageData, width, x-1, y-1)
+        //         ,calUtils.getPoint(imageData, width, x, y-1)
+        //         ,calUtils.getPoint(imageData, width, x+1, y-1)
+        //         ,calUtils.getPoint(imageData, width, x-1, y)
+        //         ,calUtils.getPoint(imageData, width, x,y)
+        //         ,calUtils.getPoint(imageData, width, x+1, y)
+        //         ,calUtils.getPoint(imageData, width, x-1, y+1)
+        //         ,calUtils.getPoint(imageData, width, x, y+1)
+        //         ,calUtils.getPoint(imageData, width, x+1, y+1)];
+        //     return list;
+        // },
+
+        /**
+         * 获取像素点及周围序列
+         * @param imageData
+         * @param width
+         * @param num 矩阵为num*num
+         * @returns {Array}
+         */
+        getAllList : function(imageData, width, x, y, num) {
+            list = [];
+            var cNum = (num - 1) / 2;
+            for(var i = -cNum ; i <= cNum ; i++) {
+                for(var j = -cNum ; j <= cNum ; j++) {
+                    list.push(calUtils.getPoint(imageData, width, x + i, y + j));
+                }
+            }
+            return list;
         },
 
         //模板2 均值平滑
@@ -480,7 +577,7 @@ $(function() {
                     avg = (calUtils.getPoint(imageData, width, x-1, y-1)
                         + calUtils.getPoint(imageData, width, x, y-1)
                         + calUtils.getPoint(imageData, width, x+1, y-1)
-                        + calUtils.getPoint(imageData, width, x -1, y)
+                        + calUtils.getPoint(imageData, width, x-1, y)
                         + calUtils.getPoint(imageData, width, x+1, y)
                         + calUtils.getPoint(imageData, width, x-1, y+1)
                         + calUtils.getPoint(imageData, width, x, y+1)
@@ -498,19 +595,12 @@ $(function() {
                 height = this.canvas.height;
             var imageSrc = this.getImageData(0, 0, width, height),
                 imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
 
 
-            for(var y = 1 ; y < height-1 ; y++) {
+            for(var y = 1 ; y < height - 1 ; y++) {
                 for(var x = 1 ; x < width-1 ; x++) {
-                    var list = [calUtils.getPoint(imageData, width, x-1, y-1)
-                        ,calUtils.getPoint(imageData, width, x, y-1)
-                        ,calUtils.getPoint(imageData, width, x+1, y-1)
-                        ,calUtils.getPoint(imageData, width, x-1, y)
-                        ,calUtils.getPoint(imageData, width, x,y)
-                        ,calUtils.getPoint(imageData, width, x+1, y)
-                        ,calUtils.getPoint(imageData, width, x-1, y+1)
-                        ,calUtils.getPoint(imageData, width, x, y+1)
-                        ,calUtils.getPoint(imageData, width, x+1, y+1)];
+                    var list = calUtils.getAllList(coreData, width, x, y, 3);
                     //降序排序
                     list.sort(function(a,b){
                         return b - a;
@@ -519,6 +609,90 @@ $(function() {
                 }
             }
 
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        /**
+         * laplace
+         * pattern 卷积核
+         */
+        laplace : function() {
+            //更换pattern为卷积核
+            var pattern = [0, -1, 0, -1, 4, -1, 0, -1, 0];
+            // var pattern = [-1, -1, -1, -1, 8, -1, -1, -1, -1];
+            // var pattern = [1, -2, 1, -2, 4, -2, 1, -2, 1];
+
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
+
+            for(var y = 1 ; y < height - 1 ; y++) {
+                for(var x = 1 ; x < width - 1 ; x++) {
+                    var list = calUtils.getAllList(coreData, width, x, y, 3);
+                    var newNum = calUtils.juanji(pattern, list);
+                    calUtils.setPoint(imageData, width, x, y, newNum + calUtils.getPoint(imageData, width, x, y));
+                }
+            }
+
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        /**
+         * sobel 算子
+         */
+        sobel : function() {
+            var pattern1,pattern2;
+            if(this.state === 1) {
+                pattern1 = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+                pattern2 = [1, 0, -1, 2, 0, -2, 1, 0, -1];
+            } else {
+                //45/135度sobel
+                pattern1 = [0, -1, -2, 1, 0, -1, 2, 1, 0];
+                pattern2 = [2, 1, 0, 1, 0, -1, 0, -1, -2];
+            }
+
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data,
+                coreData1 = new Uint8ClampedArray(imageData),
+                coreData2 = new Uint8ClampedArray(imageData);
+
+
+            for(var y = 1 ; y < height - 1 ; y++) {
+                for(var x = 1 ; x < width - 1 ; x++) {
+                    var list1 = calUtils.getAllList(coreData1, width, x, y, 3);
+                    var list2 = calUtils.getAllList(coreData2, width, x, y, 3);
+                    var newNum1 = calUtils.juanji(pattern1, list1);
+                    var newNum2 = calUtils.juanji(pattern2, list2);
+                    calUtils.setPoint(imageData, width, x, y, Math.max(newNum1, newNum2) + calUtils.getPoint(imageData, width, x, y));
+                }
+            }
+
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        gsLaplace : function() {
+            var pattern = [-2, -4, -4, -4, -2,
+                           -4,  0,  8,  0, -4,
+                           -4,  8,  24, 8, -4,
+                           -4,  0,  8,  0, -4,
+                           -2, -4, -4, -4, -2];
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
+
+            for(var y = 2 ; y < height - 2 ; y++) {
+                for(var x = 2 ; x < width - 2 ; x++) {
+                    var list = calUtils.getAllList(coreData, width, x, y, 5);
+                    var newNum = calUtils.juanji(pattern, list);
+                    calUtils.setPoint(imageData, width, x, y, newNum);
+                }
+            }
             this.putImageData(imageSrc, 0, 0);
         }
     }

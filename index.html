@@ -49,6 +49,15 @@
                 <div id="midSmooth" class="nav-down-item open-config remove-effect">中值平滑</div>
             </div>
         </div>
+        <div id="sharpChange" class="nav-item">
+            <div id="sharp" class="nav-down-item open-config">锐化处理</div>
+            <div class="nav-hidden">
+                <div id="laplace" class="nav-down-item open-config remove-effect">拉普拉斯</div>
+                <div id="gsLaplace" class="nav-down-item open-config remove-effect">高斯-拉普拉斯</div>
+                <div id="sobel" class="nav-down-item open-config remove-effect">Sobel边缘细化</div>
+                <div id="marge" class="nav-down-item open-config remove-effect">常规边缘检测</div>
+            </div>
+        </div>
     </nav>
     <div id="config">
         <div id="config-items"></div>
@@ -59,11 +68,10 @@
             <img id="preImg" src="" alt="修改前图片">
         </div>
         <div class="show">
-                <img id="afterImg" src="" alt="修改后图片">
+            <img id="afterImg" src="" alt="修改后图片">
         </div>
     </div>
 </body>
-<script type="text/javascript" src="js/sharp.js"></script>
 <script type="text/javascript" src="./js/echarts.min.js"></script>
 <script type="text/javascript" src="./js/vintage.js"></script>
 <script type="text/javascript" src="./js/myimage-1.2.js"></script>
