@@ -229,6 +229,42 @@ $(function() {
         }
     });
 
+    $("#featherGet").click(function(event) {
+        var method = event.target.id;
+        var threshNum = 200;
+        switch (method) {
+            case 'edgeLaplace': {
+                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).act("toThresh",25).ctx(calUtils.edgeLaplace).replace(afterImg);
+                break;
+            }
+
+            case 'edgeGet': {
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(calUtils.edgeGet).replace(afterImg);
+                break;
+            }
+
+            case 'areaGet': {
+                var node = "<div class='mainText' id='mainText'></div>";
+                $("#config-items").append(node);
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(calUtils.imagePxGet).ctx(function() {
+                    var text = document.getElementById("mainText");
+                    text.textContent = "面积：" + this.num;
+                }).replace(afterImg);
+                break;
+            }
+
+            case 'girthGet': {
+                var node = "<div class='mainText' id='mainText'></div>";
+                $("#config-items").append(node);
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(calUtils.edgeGet).ctx(calUtils.imagePxGet).ctx(function() {
+                    var text = document.getElementById("mainText");
+                    text.textContent = "周长：" + this.num;
+                }).replace(afterImg);
+                break;
+            }
+        }
+    });
+
 
     //**********事件工具集**********
     var eventUtil = {
@@ -499,6 +535,7 @@ $(function() {
 
         //****************************
         //得到坐标系中的某个像素点的灰度值
+        //x，y 分别为x轴和y轴
         getPoint : function(imageData, width, x, y) {
             var index = y * width + x;
             var result = imageData[index * 4];
@@ -528,20 +565,6 @@ $(function() {
 
             return sum;
         },
-
-        // //获取像素点包括周围序列原方法
-        // getList : function(imageData, width, x, y) {
-        //     var list = [calUtils.getPoint(imageData, width, x-1, y-1)
-        //         ,calUtils.getPoint(imageData, width, x, y-1)
-        //         ,calUtils.getPoint(imageData, width, x+1, y-1)
-        //         ,calUtils.getPoint(imageData, width, x-1, y)
-        //         ,calUtils.getPoint(imageData, width, x,y)
-        //         ,calUtils.getPoint(imageData, width, x+1, y)
-        //         ,calUtils.getPoint(imageData, width, x-1, y+1)
-        //         ,calUtils.getPoint(imageData, width, x, y+1)
-        //         ,calUtils.getPoint(imageData, width, x+1, y+1)];
-        //     return list;
-        // },
 
         /**
          * 获取像素点及周围序列
@@ -632,7 +655,7 @@ $(function() {
                 for(var x = 1 ; x < width - 1 ; x++) {
                     var list = calUtils.getAllList(coreData, width, x, y, 3);
                     var newNum = calUtils.juanji(pattern, list);
-                    calUtils.setPoint(imageData, width, x, y, newNum + calUtils.getPoint(imageData, width, x, y));
+                    calUtils.setPoint(imageData, width, x, y, newNum);
                 }
             }
 
@@ -667,7 +690,7 @@ $(function() {
                     var list2 = calUtils.getAllList(coreData2, width, x, y, 3);
                     var newNum1 = calUtils.juanji(pattern1, list1);
                     var newNum2 = calUtils.juanji(pattern2, list2);
-                    calUtils.setPoint(imageData, width, x, y, Math.max(newNum1, newNum2) + calUtils.getPoint(imageData, width, x, y));
+                    calUtils.setPoint(imageData, width, x, y, Math.max(newNum1, newNum2));
                 }
             }
 
@@ -694,6 +717,66 @@ $(function() {
                 }
             }
             this.putImageData(imageSrc, 0, 0);
+        },
+
+        edgeLaplace : function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
+
+            for(var y = 0 ; y < height ; y++) {
+                for(var x = 0 ; x < width ; x++) {
+                    var curColor = calUtils.getPoint(coreData, width, x, y);
+                    if(curColor != 0) {
+                        calUtils.setPoint(imageData, width, x, y, 0);
+                    } else {
+                        calUtils.setPoint(imageData, width, x, y, 255);
+                    }
+                }
+            }
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        edgeGet: function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
+            var pattern = [
+                1, 1, 1,
+                1, 1, 1,
+                1, 1, 1
+            ];
+
+            for(var y = 1 ; y < height - 1 ; y++) {
+                for(var x = 1 ; x < width - 1 ; x++) {
+                    var list = calUtils.getAllList(coreData, width, x, y, 3);
+                    if(calUtils.juanji(list,pattern) == list[4]) {
+                        calUtils.setPoint(imageData, width, x, y, 255);
+                    }
+                }
+            }
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        imagePxGet: function() {
+            this.num = 0;
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+
+            for(var y = 0 ; y < height ; y++) {
+                for (var x = 0; x < width; x++) {
+                    var curColor = calUtils.getPoint(imageData, width, x, y);
+                    if (curColor === 0) {
+                        this.num++;
+                    }
+                }
+            }
         }
     }
 });
