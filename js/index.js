@@ -231,10 +231,12 @@ $(function() {
 
     $("#featherGet").click(function(event) {
         var method = event.target.id;
-        var threshNum = 200;
+
+        //轮廓处理阈值
+        var threshNum = 180;
         switch (method) {
             case 'edgeLaplace': {
-                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).act("toThresh",25).ctx(calUtils.edgeLaplace).replace(afterImg);
+                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).act("toThresh",20).ctx(calUtils.midSmooth).ctx(calUtils.edgeLaplace).replace(afterImg);
                 break;
             }
 
@@ -719,6 +721,7 @@ $(function() {
             this.putImageData(imageSrc, 0, 0);
         },
 
+        //边缘提取-拉普拉斯边缘化方法
         edgeLaplace : function() {
             var width = this.canvas.width,
                 height = this.canvas.height;
@@ -739,6 +742,7 @@ $(function() {
             this.putImageData(imageSrc, 0, 0);
         },
 
+        //边缘提取
         edgeGet: function() {
             var width = this.canvas.width,
                 height = this.canvas.height;
@@ -780,7 +784,5 @@ $(function() {
         }
     }
 });
-
-
 
 
