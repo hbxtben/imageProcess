@@ -233,22 +233,22 @@ $(function() {
         var method = event.target.id;
 
         //轮廓处理阈值
-        var threshNum = 180;
+        var threshNum = 170;
         switch (method) {
             case 'edgeLaplace': {
-                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).act("toThresh",20).ctx(calUtils.midSmooth).ctx(calUtils.edgeLaplace).replace(afterImg);
+                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).act("toThresh",7).ctx(function(){ this.back=255; }).ctx(calUtils.midSmooth).ctx(calUtils.edgeLaplace).replace(afterImg);
                 break;
             }
 
             case 'edgeGet': {
-                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(calUtils.edgeGet).replace(afterImg);
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.edgeGet).replace(afterImg);
                 break;
             }
 
             case 'areaGet': {
                 var node = "<div class='mainText' id='mainText'></div>";
                 $("#config-items").append(node);
-                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(calUtils.imagePxGet).ctx(function() {
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.imagePxGet).ctx(function() {
                     var text = document.getElementById("mainText");
                     text.textContent = "面积：" + this.num;
                 }).replace(afterImg);
@@ -258,10 +258,48 @@ $(function() {
             case 'girthGet': {
                 var node = "<div class='mainText' id='mainText'></div>";
                 $("#config-items").append(node);
-                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(calUtils.edgeGet).ctx(calUtils.imagePxGet).ctx(function() {
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.edgeGet).ctx(calUtils.imagePxGet).ctx(function() {
                     var text = document.getElementById("mainText");
                     text.textContent = "周长：" + this.num;
                 }).replace(afterImg);
+                break;
+            }
+        }
+    });
+
+    $("#morphologyChange").click(function() {
+        var method = event.target.id;
+
+        //轮廓处理阈值
+        var threshNum = 170;
+        switch (method) {
+            case 'corrode': {
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.imgCorrode).replace(afterImg);
+                break;
+            }
+
+            case 'swell': {
+                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).act("toThresh",7).ctx(function(){ this.back=255; }).ctx(calUtils.midSmooth).ctx(calUtils.edgeLaplace).ctx(calUtils.imgSwell).ctx(calUtils.imgSwell).replace(afterImg);
+                break;
+            }
+
+            case 'openCal': {
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.imgCorrode).ctx(calUtils.imgSwell).replace(afterImg);
+                break;
+            }
+
+            case 'closeCal': {
+                $AI(preImg).ctx(calUtils.HDChange).ctx(calUtils.laplace).act("toThresh",10).ctx(function(){ this.back=255; }).ctx(calUtils.midSmooth).ctx(calUtils.edgeLaplace).ctx(calUtils.imgSwell).ctx(calUtils.imgSwell).ctx(calUtils.imgCorrode).replace(afterImg);
+                break;
+            }
+
+            case 'morphologyMake': {
+                $AI(preImg).ctx(calUtils.HDChange).ctx(function(){ this.back=255; }).ctx(calUtils.laplace).act("toThresh",10).ctx(calUtils.midSmooth).ctx(calUtils.edgeLaplace).ctx(calUtils.imgSwell).ctx(calUtils.imgSwell).ctx(calUtils.imgCorrode).replace(afterImg);
+                break;
+            }
+
+            case 'refine': {
+                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.imgRefine).replace(afterImg);
                 break;
             }
         }
@@ -580,7 +618,7 @@ $(function() {
             var cNum = (num - 1) / 2;
             for(var i = -cNum ; i <= cNum ; i++) {
                 for(var j = -cNum ; j <= cNum ; j++) {
-                    list.push(calUtils.getPoint(imageData, width, x + i, y + j));
+                    list.push(calUtils.getPoint(imageData, width, x + j, y + i));
                 }
             }
             return list;
@@ -723,6 +761,9 @@ $(function() {
 
         //边缘提取-拉普拉斯边缘化方法
         edgeLaplace : function() {
+            //pc为当前主体的颜色，bc为背景色
+            var pc = 255-this.back,
+                bc = this.back;
             var width = this.canvas.width,
                 height = this.canvas.height;
             var imageSrc = this.getImageData(0, 0, width, height),
@@ -732,10 +773,10 @@ $(function() {
             for(var y = 0 ; y < height ; y++) {
                 for(var x = 0 ; x < width ; x++) {
                     var curColor = calUtils.getPoint(coreData, width, x, y);
-                    if(curColor != 0) {
-                        calUtils.setPoint(imageData, width, x, y, 0);
+                    if(curColor != pc) {
+                        calUtils.setPoint(imageData, width, x, y, pc);
                     } else {
-                        calUtils.setPoint(imageData, width, x, y, 255);
+                        calUtils.setPoint(imageData, width, x, y, bc);
                     }
                 }
             }
@@ -744,6 +785,9 @@ $(function() {
 
         //边缘提取
         edgeGet: function() {
+            //pc为当前主体的颜色，bc为背景色
+            var pc = 255-this.back,
+                bc = this.back;
             var width = this.canvas.width,
                 height = this.canvas.height;
             var imageSrc = this.getImageData(0, 0, width, height),
@@ -759,7 +803,7 @@ $(function() {
                 for(var x = 1 ; x < width - 1 ; x++) {
                     var list = calUtils.getAllList(coreData, width, x, y, 3);
                     if(calUtils.juanji(list,pattern) == list[4]) {
-                        calUtils.setPoint(imageData, width, x, y, 255);
+                        calUtils.setPoint(imageData, width, x, y, bc);
                     }
                 }
             }
@@ -768,6 +812,9 @@ $(function() {
 
         imagePxGet: function() {
             this.num = 0;
+            //pc为当前主体的颜色，bc为背景色
+            var pc = 255-this.back,
+                bc = this.back;
             var width = this.canvas.width,
                 height = this.canvas.height;
             var imageSrc = this.getImageData(0, 0, width, height),
@@ -776,13 +823,184 @@ $(function() {
             for(var y = 0 ; y < height ; y++) {
                 for (var x = 0; x < width; x++) {
                     var curColor = calUtils.getPoint(imageData, width, x, y);
-                    if (curColor === 0) {
+                    if (curColor === pc) {
                         this.num++;
                     }
                 }
             }
+        },
+
+        //图像腐蚀
+        imgCorrode: function() {
+            //pc为当前主体的颜色，bc为背景色
+            var pc = 255 - this.back,
+                bc = this.back;
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
+            var pattern = [
+                0, 1, 0,
+                1, 1, 1,
+                0, 1, 0
+            ];
+
+            for(var y = 1 ; y < height-1 ; y++) {
+                for(var x = 1 ; x < width-1 ; x++) {
+                    var curColor = calUtils.getPoint(coreData, width, x, y);
+                    //先判断当前点是否是图像点
+                    if(curColor == pc) {
+                        var list = calUtils.getAllList(coreData, width, x, y, 3);
+                        for(var index in pattern ) {
+                            if(pattern[index] === 1){
+                                if(list[index] != pc) {
+                                    calUtils.setPoint(imageData, width, x, y, bc);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        //图像膨胀
+        imgSwell: function() {
+            //pc为当前主体的颜色，bc为背景色
+            var pc = 255-this.back,
+                bc = this.back;
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
+            var pattern = [
+                0, 1, 0,
+                1, 1, 1,
+                0, 1, 0
+            ];
+
+            for(var y = 1 ; y < height-1 ; y++) {
+                for(var x = 1 ; x < width-1 ; x++) {
+                    var list = calUtils.getAllList(coreData, width, x, y, 3);
+                    for(var index in pattern ) {
+                        if(pattern[index] === 1){
+                            if(list[index] === pc) {
+                                calUtils.setPoint(imageData, width, x, y, pc);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        //检测序列按照0->1的次数
+        zeroChange: function(list) {
+            var num = 0,
+                len = list.length,
+                flag = list[0];
+            for(var i = 1 ; i < len ; i++) {
+                if(list[i] === 1 && flag === 0) {
+                    num++;
+                }
+                flag = list[i];
+            }
+            return num;
+        },
+
+        //判断邻域黑点的个数
+        getBCNum: function(list) {
+            var sum = 0;
+            for(var i = 0 ; i < list.length ;i++) {
+                sum += list[i];
+            }
+            sum -= list[4];
+            return sum;
+        },
+
+        /**
+         * 提取二值化图的9宫格并修整为算法要求的序列
+         * @param list 图像像素序列
+         * @param pc 物体像素的值
+         * @return 0->1的次数
+         */
+        refinementList: function(list) {
+            var result = [];
+
+            result[0] = list[1];
+            result[1] = list[0];
+            result[2] = list[3];
+            result[3] = list[6];
+            result[4] = list[7];
+            result[5] = list[8];
+            result[6] = list[5];
+            result[7] = list[2];
+            result[8] = list[1];
+            return result;
+        },
+
+        //对像素点调整为0-1序列
+        pixelNumList: function(list, pc) {
+            var result = [];
+            var len = list.length;
+
+            for(var index = 0 ; index < len ; index++) {
+                result[index] = list[index] == pc ? 1 : 0;
+            }
+            return result;
+        },
+
+
+        //细化操作
+        imgRefine: function() {
+            //判断是否需要重复细化 flag 为 0 时说明已经没有点被删除了
+            var flag = 1;
+            //pc为当前主体的颜色，bc为背景色
+            var pc = 255 - this.back,
+                bc = this.back;
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var coreData = new Uint8ClampedArray(imageData);
+
+            while(flag === 1) {
+                flag = 0;
+
+                for(var y = height-2 ; y > 2  ; y--) {
+                    for(var x = 2 ; x < width - 2 ; x++) {
+                        var curColor = calUtils.getPoint(coreData, width, x, y);
+                        var list = calUtils.getAllList(coreData, width, x, y, 3);
+                        var numList = calUtils.pixelNumList(list, pc);
+                        // var list1 = calUtils.getAllList(imageData, width, x, y-1, 3);
+                        // var list2 = calUtils.getAllList(imageData, width, x-1, y, 3);
+                        var refineList = calUtils.refinementList(numList);
+                        // var refineList1 = calUtils.refinementList(list1, pc);
+                        // var refineList2 = calUtils.refinementList(list2, pc);
+
+                        if(curColor == pc) {
+                            //4个判断条件
+                            if(calUtils.getBCNum(numList) >= 2 && calUtils.getBCNum(numList) <= 6
+                                && calUtils.zeroChange(refineList) == 1
+                                && numList[1] * numList[3] * numList[5] == 0
+                                && numList[1] * numList[3] * numList[7] == 0) {
+                                calUtils.setPoint(imageData, width, x, y, bc);
+                                flag = 1;
+                            }
+                        }
+                    }
+                }
+
+                coreData = new Uint8ClampedArray(imageData);
+            }
+
+            this.putImageData(imageSrc, 0, 0);
         }
     }
 });
-
-
