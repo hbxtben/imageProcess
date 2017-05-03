@@ -299,7 +299,7 @@ $(function() {
             }
 
             case 'refine': {
-                $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.imgRefine).replace(afterImg);
+                $AI(preImg).ctx(function(){ this.back=255; }).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(calUtils.imgRefine).replace(afterImg);
                 break;
             }
         }
@@ -442,7 +442,7 @@ $(function() {
     };
 
 
-    //*******************计算工具集****************8
+    //*******************计算工具集****************
     var calUtils = {
         state : 0,
         data : [],
@@ -973,7 +973,7 @@ $(function() {
             while(flag === 1) {
                 flag = 0;
 
-                for(var y = height-2 ; y > 2  ; y--) {
+                for(var y = 2 ; y < height - 2  ; y++) {
                     for(var x = 2 ; x < width - 2 ; x++) {
                         var curColor = calUtils.getPoint(coreData, width, x, y);
                         var list = calUtils.getAllList(coreData, width, x, y, 3);
