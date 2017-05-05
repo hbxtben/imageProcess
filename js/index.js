@@ -978,6 +978,7 @@ $(function() {
                         var curColor = calUtils.getPoint(coreData, width, x, y);
                         var list = calUtils.getAllList(coreData, width, x, y, 3);
                         var numList = calUtils.pixelNumList(list, pc);
+                        //书上算法
                         // var list1 = calUtils.getAllList(imageData, width, x, y-1, 3);
                         // var list2 = calUtils.getAllList(imageData, width, x-1, y, 3);
                         var refineList = calUtils.refinementList(numList);
