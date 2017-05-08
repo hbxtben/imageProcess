@@ -77,6 +77,24 @@
                 <div id="refine" class="nav-down-item open-config remove-effect">图像细化</div>
             </div>
         </div>
+        <div id="faceGet" class="nav-item">
+            <div id="faceBtn" class="nav-down-item open-config">脸部识别</div>
+            <div class="nav-hidden">
+                <div id="faceTag" class="nav-down-item open-config remove-effect">脸部标记</div>
+                <div id="faceEle" class="nav-down-item open-config remove-effect">脸部部位识别</div>
+            </div>
+        </div>
+        <div id="RGBChange" class="nav-item">
+            <div id="RGBBtn" class="nav-down-item open-config">颜色转换</div>
+            <div class="nav-hidden">
+                <div id="hsi" class="nav-down-item open-config remove-effect">RGB与HSI</div>
+                <div id="yiq" class="nav-down-item open-config remove-effect">RGB与YIQ</div>
+                <div id="yuv" class="nav-down-item open-config remove-effect">RGB与YUV</div>
+                <div id="cmy" class="nav-down-item open-config remove-effect">RGB与CMY</div>
+                <div id="ycbcr" class="nav-down-item open-config remove-effect">RGB与YCbCr</div>
+                <div id="hsv" class="nav-down-item open-config remove-effect">RGB与HSV</div>
+            </div>
+        </div>
     </nav>
     <div id="config">
         <div id="config-items"></div>
@@ -86,11 +104,15 @@
         <div class="show">
             <img id="preImg" src="" alt="修改前图片">
         </div>
-        <div class="show">
+        <div class="show face-container" id="photo">
             <img id="afterImg" src="" alt="修改后图片">
         </div>
     </div>
 </body>
+<script type="text/javascript" src="./tracking/build/tracking-min.js"></script>
+<script type="text/javascript" src="./tracking/build/data/face-min.js"></script>
+<script type="text/javascript" src="./tracking/build/data/mouth-min.js"></script>
+<script type="text/javascript" src="./tracking/build/data/eye-min.js"></script>
 <script type="text/javascript" src="./js/echarts.min.js"></script>
 <script type="text/javascript" src="./js/vintage.js"></script>
 <script type="text/javascript" src="./js/myimage-1.2.js"></script>

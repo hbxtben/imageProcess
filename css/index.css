@@ -280,3 +280,51 @@ nav div {
     top: 120px;
 }
 /*面板部分结束*/
+
+
+
+/*脸部方框*/
+.rect {
+    border: 2px solid #FFFFFF;
+    left: -1000px;
+    position: absolute;
+    top: -1000px;
+}
+
+.arrow {
+    border-bottom: 10px solid white;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    height: 0;
+    width: 0;
+    position: absolute;
+    left: 50%;
+    margin-left: -5px;
+    bottom: -12px;
+    opacity: 0;
+}
+
+input.name{
+    border: 0px;
+    bottom: -42px;
+    color: #FF7800;
+    font-size: 15px;
+    height: 30px;
+    left: 50%;
+    margin-left: -90px;
+    opacity: 0;
+    outline: none;
+    position: absolute;
+    text-align: center;
+    width: 180px;
+    transition: opacity .35s ease-out;
+}
+
+#photo:hover .rect {
+    opacity: .75;
+    transition: opacity .75s ease-out;
+}
+
+.rect:hover * {
+    opacity: 1;
+}

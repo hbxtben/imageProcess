@@ -4,7 +4,7 @@ $(function() {
     //原图-preImg 操作后图-afterImg
     var preImg = document.getElementById("preImg");
     var afterImg = document.getElementById("afterImg");
-
+    var imgName;
 
     $(".config-up").click(function () {
         $("#config").slideUp(200);
@@ -23,6 +23,11 @@ $(function() {
         var afterimg = $("#afterImg")[0];
         afterimg.style = "";
         afterimg.classList = [];
+
+        //删除脸部的框框！！！！！！！
+        $('.rect').remove();
+        $('.arrow').remove();
+        $('.name').remove();
     });
 
     $(".open-config").click(function (event) {
@@ -305,6 +310,160 @@ $(function() {
         }
     });
 
+    $("#faceGet").click(function(event) {
+        var method = event.target.id;
+
+        switch(method) {
+            case 'faceTag': {
+                var names = imgName.split('.')[0].split('-');
+                console.log(names);
+
+                var tracker = new tracking.ObjectTracker('face');
+
+                tracking.track(afterImg, tracker);
+
+                tracker.on('track', function(event) {
+                    event.data.forEach(function(rect) {
+                        plotRectangle(rect.x, rect.y, rect.width, rect.height);
+                    });
+                });
+
+                var plotRectangle = function(x, y, w, h) {
+                    var rect = document.createElement('div');
+                    var arrow = document.createElement('div');
+                    var input = document.createElement('input');
+
+                    input.value = names.pop();
+
+                    rect.onclick = function name() {
+                        input.select();
+                    };
+
+                    arrow.classList.add('arrow');
+                    rect.classList.add('rect');
+                    input.classList.add('name');
+
+                    rect.appendChild(input);
+                    rect.appendChild(arrow);
+                    document.getElementById('photo').appendChild(rect);
+
+                    rect.style.width = w + 'px';
+                    rect.style.height = h + 'px';
+                    rect.style.left = (afterImg.offsetLeft + x) + 'px';
+                    rect.style.top = (afterImg.offsetTop + y) + 'px';
+                };
+                break;
+            }
+
+            case 'faceEle': {
+                var tracker = new tracking.ObjectTracker(['face','eye','mouth']);
+                tracker.setStepSize(1.7);
+
+                tracking.track('#afterImg', tracker);
+
+                tracker.on('track', function(event) {
+                    event.data.forEach(function(rect) {
+                        plot(rect.x, rect.y, rect.width, rect.height);
+                    });
+                });
+
+                var plot = function(x, y, w, h) {
+                    var rect = document.createElement('div');
+                    document.querySelector('.face-container').appendChild(rect);
+                    rect.classList.add('rect');
+                    rect.style.width = w + 'px';
+                    rect.style.height = h + 'px';
+                    rect.style.left = (afterImg.offsetLeft + x) + 'px';
+                    rect.style.top = (afterImg.offsetTop + y) + 'px';
+                };
+                break;
+            }
+        }
+    });
+
+
+    $("#RGBChange").click(function(event) {
+        var method = event.target.id;
+
+        switch (method) {
+            case 'hsi': {
+                var nodeInput1 = "<input id='rgb_input' type='text' placeholder='R/G/B'>",
+                    nodeInput2 = "<input id='hsi_input' type='text' placeholder='H/S/I'><br/>",
+                    node1 = "<button id='RGBToHIS' type='text'>rgb转换至his</button><br/>";
+                    node2 = "<button id='HSIToRGB' type='text'>his转换至rgb</button>";
+                $("#config-items").append(nodeInput1).append(nodeInput2).append(node1).append(node2);
+
+                $("#RGBToHIS").click(eventUtil.toHSI);
+                $("#HSIToRGB").click(eventUtil.HSIToRGB);
+                break;
+            }
+
+            case 'yiq': {
+                var nodeInput1 = "<input id='rgb_input' type='text' placeholder='R/G/B'>",
+                    nodeInput2 = "<input id='yiq_input' type='text' placeholder='Y/I/Q'><br/>",
+                    node1 = "<button id='RGBToYIQ' type='text'>rgb转换至yiq</button><br/>";
+                    node2 = "<button id='YIQToRGB' type='text'>yiq转换至rgb</button>";
+                $("#config-items").append(nodeInput1).append(nodeInput2).append(node1).append(node2);
+
+                $("#RGBToYIQ").click(eventUtil.toYIQ);
+                $("#YIQToRGB").click(eventUtil.YIQToRGB);
+                break;
+            }
+
+            case 'yuv': {
+                var nodeInput1 = "<input id='rgb_input' type='text' placeholder='R/G/B'>",
+                    nodeInput2 = "<input id='yuv_input' type='text' placeholder='Y/U/V'><br/>",
+                    node1 = "<button id='RGBToYUV' type='text'>rgb转换至yuv</button><br/>";
+                    node2 = "<button id='YUVToRGB' type='text'>yuv转换至rgb</button>";
+                $("#config-items").append(nodeInput1).append(nodeInput2).append(node1).append(node2);
+
+                $("#RGBToYUV").click(eventUtil.toYUV);
+                $("#YUVToRGB").click(eventUtil.YUVToRGB);
+                break;
+            }
+
+            case 'cmy': {
+                var nodeInput1 = "<input id='rgb_input' type='text' placeholder='R/G/B'>",
+                    nodeInput2 = "<input id='cmy_input' type='text' placeholder='C/M/Y'><br/>",
+                    node1 = "<button id='RGBToCMY' type='text'>rgb转换至cmy</button><br/>";
+                    node2 = "<button id='CMYToRGB' type='text'>cmy转换至rgb</button>";
+                $("#config-items").append(nodeInput1).append(nodeInput2).append(node1).append(node2);
+
+                $("#RGBToCMY").click(eventUtil.toCMY);
+                $("#CMYToRGB").click(eventUtil.CMYToRGB);
+                break;
+            }
+
+            case 'ycbcr': {
+                var nodeInput1 = "<input id='rgb_input' type='text' placeholder='R/G/B'>",
+                    nodeInput2 = "<input id='ycbcr_input' type='text' placeholder='Y/Cb/Cr'><br/>",
+                    node1 = "<button id='RGBToYCBCR' type='text'>rgb转换至ycbcr</button><br/>";
+                node2 = "<button id='YCBCRToRGB' type='text'>ycbcr转换至rgb</button>";
+                $("#config-items").append(nodeInput1).append(nodeInput2).append(node1).append(node2);
+
+                $("#RGBToYCBCR").click(eventUtil.toYCBCR);
+                $("#YCBCRToRGB").click(eventUtil.YCBCRToRGB);
+                break;
+            }
+
+            case 'hsv': {
+                var nodeInput1 = "<input id='rgb_input' type='text' placeholder='R/G/B'>",
+                    nodeInput2 = "<input id='hsv_input' type='text' placeholder='H/S/V'><br/>",
+                    node1 = "<button id='RGBToHSV' type='text'>rgb转换至hsv</button><br/>";
+                $("#config-items").append(nodeInput1).append(nodeInput2).append(node1);
+
+                $("#RGBToHSV").click(eventUtil.toHSV);
+                break;
+            }
+        }
+    });
+
+
+
+
+
+
+
 
     //**********事件工具集**********
     var eventUtil = {
@@ -318,6 +477,8 @@ $(function() {
             var files = event.target.files;
             var imgData = files[0];
             var imgcontent = $("<p></p>").text("文件名:" + imgData.name + "\n文件类型:" + imgData.type + "\n文件大小:" + imgData.size + "B");
+            //保存下照片名字
+            imgName = imgData.name;
             $("#preImg")[0].src = "./image/" + imgData.name;
             $("#afterImg")[0].src = "./image/" + imgData.name;
             $("#config-items").empty().append(imgcontent);
@@ -439,7 +600,147 @@ $(function() {
             $AI(preImg).act("toGray").act("sharp", value).replace(afterImg);
         },
 
+
+
+//颜色转换
+        //RGB => HSI
+        toHSI : function() {
+            var pre = document.getElementById("rgb_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+            var last = calUtils.toHSI(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("hsi_input").value = last.join('/');
+        },
+
+        //HSI => RGB
+        HSIToRGB : function() {
+            var pre = document.getElementById("hsi_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.HSIToRGB(lastList[0],lastList[1],lastList[2]);
+            console.log(last);
+            document.getElementById("rgb_input").value = last.join('/');
+        },
+
+        toYIQ : function() {
+            var pre = document.getElementById("rgb_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.toYIQ(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("yiq_input").value = last.join('/');
+        },
+
+        YIQToRGB : function() {
+            var pre = document.getElementById("yiq_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.YIQToRGB(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("rgb_input").value = last.join('/');
+        },
+
+        toYUV : function() {
+            var pre = document.getElementById("rgb_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.toYUV(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("yuv_input").value = last.join('/');
+        },
+
+        YUVToRGB : function() {
+            var pre = document.getElementById("yuv_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.YUVToRGB(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("rgb_input").value = last.join('/');
+        },
+
+        toCMY : function() {
+            var pre = document.getElementById("rgb_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.toCMY(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("cmy_input").value = last.join('/');
+        },
+
+        CMYToRGB : function() {
+            var pre = document.getElementById("cmy_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.CMYToRGB(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("rgb_input").value = last.join('/');
+        },
+
+        toYCBCR : function() {
+            var pre = document.getElementById("rgb_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.toYCBCR(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("ycbcr_input").value = last.join('/');
+        },
+
+        YCBCRToRGB : function() {
+            var pre = document.getElementById("ycbcr_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.YCBCRToRGB(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("rgb_input").value = last.join('/');
+        },
+
+        toHSV : function() {
+            var pre = document.getElementById("rgb_input").value;
+            var lastList = pre.split('/');
+            lastList.forEach(function (value, index, arr) {
+                arr[index] = Number(arr[index]);
+            });
+
+            var last = calUtils.toHSV(lastList[0],lastList[1],lastList[2]);
+            document.getElementById("hsv_input").value = last.join('/');
+        }
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     //*******************计算工具集****************
@@ -1002,6 +1303,147 @@ $(function() {
             }
 
             this.putImageData(imageSrc, 0, 0);
+        },
+
+        //colorMatrix
+        matrixMulti : function(middle, pre) {
+            len = middle.length;
+            result = [];
+            for(var i = 0 ; i < len ; i += 3) {
+                result[i / 3] = middle[i] * pre[0] + middle[i + 1] * pre[1] + middle[i + 2] * pre[2];
+                result[i / 3] = result[i / 3].toFixed(3);
+            }
+            return result;
+        },
+
+        //RGB => HSI
+        toHSI : function(r, g, b) {
+            var i = (r + g + b) / 3;
+            var f = (2 * r - g - b) / (g - b);
+            var temp = g > b ? 0 : 180;
+            var h = (1/360)*(90-Math.atan(f/Math.sqrt(3))+temp);
+            var s = 1 - (Math.min(r, g, b)/i);
+            // return [h.toFixed(3), s.toFixed(3), i.toFixed(3)];
+            return [h, s, i];
+        },
+
+        //HSI => RGB
+        HSIToRGB : function(h, s, i) {
+            var r, g, b;
+            if(h < 120 && h >= 0) {
+                r = (i / Math.sqrt(3)) * (1 + (s * Math.cos(h) / Math.cos(60-h)));
+                b = (i / Math.sqrt(3)) * (1 - s);
+                g = Math.sqrt(3) * i - r - b;
+            }else if(h<240 && h >=120) {
+                g = (i / Math.sqrt(3)) * (1 + (s * Math.cos(h-120) / Math.cos(180-h)));
+                r = (i / Math.sqrt(3)) * (1 - s);
+                b = Math.sqrt(3) * i - r - g;
+            } else if(h>=240 && h<360){
+                b = (i / Math.sqrt(3)) * (1 + (s * Math.cos(h-240) / Math.cos(300-h)));
+                g = (i / Math.sqrt(3)) * (1 - s);
+                r= Math.sqrt(3) * i - g - b;
+            }
+            // return [r.toFixed(3), g.toFixed(3), b.toFixed(3)];
+            return [r, g, b];
+        },
+
+        //RGB => YIQ
+        toYIQ : function(r, g, b) {
+            var pattern = [
+                0.299, 0.587, 0.114,
+                0.596, -0.274, -0.322,
+                0.211, -0.522, 0.311
+            ];
+            console.log(calUtils.matrixMulti(pattern, [r, g, b]));
+            return calUtils.matrixMulti(pattern, [r, g, b]);
+        },
+
+        //YIQ => RGB
+        YIQToRGB : function(y, i, q) {
+            var pattern = [
+                1, 0.956, 0.623,
+                1, -0.272, -0.648,
+                1, -1.105, -0.705
+            ];
+            return calUtils.matrixMulti(pattern, [y, i, q]);
+        },
+
+        //RGB => YUV
+        toYUV : function(r, g, b) {
+            var pattern = [
+                0.299, 0.587, 0.114,
+                -0.1678, -0.3313, 0.5,
+                0.5, -0.4187, -0.0813
+            ];
+            return calUtils.matrixMulti(pattern, [r, g, b]);
+        },
+
+        //YUV => RGB
+        YUVToRGB : function(y, u, v) {
+            var pattern = [
+                1,        0,    1.402,
+                1, -0.34414, -0.71414,
+                1,   1.1772,        0
+            ];
+            return calUtils.matrixMulti(pattern, [y, u, v]);
+        },
+
+        //RGB => CMY
+        toCMY : function(r, g, b) {
+            var c = 1 - r;
+            var m = 1 - g;
+            var y = 1 - b;
+            return [c, m, y];
+        },
+
+        //CMY => RGB
+        CMYToRGB : function(c, m, y) {
+            var r = 1 - c;
+            var g = 1 - m;
+            var b = 1 - y;
+            return [r, g, b];
+        },
+
+        //RGB => YCbCr
+        toYCBCR : function(r, g, b) {
+            var y = 0.299 * r + 0.587 * g + 0.114 * b;
+            var cb = -0.1687 * r - 0.3313 * g + 0.5 * b + 128;
+            var cr = 0.5 * r - 0.4187 * g - 0.0813 * b + 128;
+
+            return [y.toFixed(3), cb.toFixed(3), cr.toFixed(3)];
+        },
+
+        //YCbCr => RGB
+        YCBCRToRGB : function(y, cb, cr) {
+            var r = y + 1.402 * (cr - 128);
+            var g = y - 0.34414 * (cb - 128) - 0.71414 * (cr - 128);
+            var b = y + 1.772 * (cb - 128);
+            return [r.toFixed(3), g.toFixed(3), b.toFixed(3)];
+        },
+
+        //RGB => HSV
+        toHSV : function(r, g, b) {
+            var max = Math.max(r, g, b);
+            var min = Math.min(r, g, b);
+            var h, s, v;
+
+            if(r == max) {
+                h = (g - b) / (max - min);
+            } else if (g == max) {
+                h = 2 + (b - r) / (max - min);
+            } else if (b == max) {
+                h = 4 + (r - g) / (max - min);
+            }
+
+            h = h * 60;
+            if(h < 0) {
+                h = h +360;
+            }
+
+            v = max/255;
+            s = (max - min) / max;
+
+            return [h.toFixed(3), s.toFixed(3), v.toFixed(3)];
         }
     }
 });
