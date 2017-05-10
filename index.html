@@ -80,6 +80,9 @@
         <div id="faceGet" class="nav-item">
             <div id="faceBtn" class="nav-down-item open-config">脸部识别</div>
             <div class="nav-hidden">
+                <div id="faceColor" class="nav-down-item open-config remove-effect">肤色检测</div>
+                <div id="colorRect" class="nav-down-item open-config remove-effect">颜色抓取</div>
+                <div id="faceFeature" class="nav-down-item open-config remove-effect">脸部特征</div>
                 <div id="faceTag" class="nav-down-item open-config remove-effect">脸部标记</div>
                 <div id="faceEle" class="nav-down-item open-config remove-effect">脸部部位识别</div>
             </div>
@@ -106,6 +109,7 @@
         </div>
         <div class="show face-container" id="photo">
             <img id="afterImg" src="" alt="修改后图片">
+            <canvas id="canvas" width="552" height="500"></canvas>
         </div>
     </div>
 </body>

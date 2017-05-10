@@ -278,6 +278,7 @@ $(function() {
         //轮廓处理阈值
         var threshNum = 170;
         switch (method) {
+            //腐蚀
             case 'corrode': {
                 $AI(preImg).ctx(calUtils.HDChange).act("toThresh", threshNum).ctx(function(){ this.back=255; }).ctx(calUtils.imgCorrode).replace(afterImg);
                 break;
@@ -376,6 +377,84 @@ $(function() {
                     rect.style.left = (afterImg.offsetLeft + x) + 'px';
                     rect.style.top = (afterImg.offsetTop + y) + 'px';
                 };
+                break;
+            }
+
+            case 'colorRect': {
+
+                // var demoContainer = document.querySelector('.face-container');
+
+                // //肤色颜色判定
+                // tracking.ColorTracker.registerColor('faceYellow', function(r, g, b) {
+                //     if(r > 95 && g > 40 && b > 20 && r-b > 15 && r-g > 15) {
+                //         return true;
+                //     } else if(r > 200 && g > 210 && b > 170 && r - b <= 15 && r > b && g > b) {
+                //         return true;
+                //     } else {
+                //         return false;
+                //     }
+                // });
+
+                // var tracker = new tracking.ColorTracker('faceYellow');
+                // tracker.on('track', function(event) {
+                //     event.data.forEach(function(rect) {
+                //         //长宽的限制
+                //         var scale = rect.height / rect.width;
+                //         if(scale > 1 && scale < 2) {
+                //             plot(rect.x, rect.y, rect.width, rect.height, '#FFFFFF');
+                //         }
+                //     });
+                // });
+                // tracking.track('#afterImg', tracker);
+                // //标识方框
+                // var plot = function(x, y, w, h, color) {
+                //     var rect = document.createElement('div');
+                //     document.querySelector('.face-container').appendChild(rect);
+                //     rect.classList.add('rect');
+                //     rect.style.border = '2px solid ' + color;
+                //     rect.style.width = w + 'px';
+                //     rect.style.height = h + 'px';
+                //     rect.style.left = (afterImg.offsetLeft + x) + 'px';
+                //     rect.style.top = (afterImg.offsetTop + y) + 'px';
+                // };
+                
+                var rects = [];
+                $AI(preImg).ctx(calUtils.faceColorGet).ctx(function(){ this.back=255; }).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgSwell).ctx(calUtils.imgSwell).ctx(calUtils.connect).ctx(calUtils.getRects).ctx(function(){rects = this.rectsList;});
+                $AI(preImg).ctx(function(){this.rects = rects;}).ctx(calUtils.addRects).replace(afterImg);                
+                break;
+            }
+
+            case 'faceColor': {
+                var rects = [];
+                $AI(preImg).ctx(calUtils.faceColorGet).ctx(function(){ this.back=255; }).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgSwell).ctx(calUtils.imgSwell).ctx(calUtils.connect).ctx(calUtils.makeRect).ctx(function(){rects = this.rectsList;}).replace(afterImg);
+                // $AI(preImg).ctx(function(){this.rects = rects;}).ctx(calUtils.addRects).replace(afterImg);
+                break;
+            }
+
+            case 'faceFeature' : {
+                var width = afterImg.width;
+                var height = afterImg.height;
+                console.log(width, height);
+                var canvas = document.getElementById('canvas');
+                var context = canvas.getContext('2d');
+                //特征点数量
+                var fastThreshold = 12;
+                var doFindFeatures = function() {
+                    tracking.Fast.THRESHOLD = fastThreshold;
+                    context.drawImage(afterImg, 0, 0, width, height);
+                    var imageData = context.getImageData(0, 0, width, height);
+                    var gray = tracking.Image.grayscale(imageData.data, width, height);
+                    var corners = tracking.Fast.findCorners(gray, width, height);
+                    for (var i = 0; i < corners.length; i += 2) {
+                        context.fillStyle = '#f00';
+                        context.fillRect(corners[i], corners[i + 1], 3, 3);
+                    }
+                };
+                doFindFeatures();
+                // var gui = new dat.GUI();
+                // gui.add(window, 'fastThreshold', 0, 100).onChange(doFindFeatures);
+
+                afterImg.src = canvas.toDataURL("image/png");
                 break;
             }
         }
@@ -892,6 +971,10 @@ $(function() {
             imageData[index * 4 + 3] = 255;
         },
 
+        getIndex : function(width, x, y) {
+            var index = (y * width + x) * 4;
+            return index;
+        },
         /**
          * 求卷积
          * @param pattern 卷积核，当前只支持3*3 ,对于高斯-laplace中的5*5算子还木有兼容
@@ -1444,6 +1527,183 @@ $(function() {
             s = (max - min) / max;
 
             return [h.toFixed(3), s.toFixed(3), v.toFixed(3)];
+        },
+
+        faceColorGet : function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+
+            for(var y = 0 ; y < height ; y++) {
+                for(var x = 0 ; x < width ; x++) {
+                    var pixIndex = calUtils.getIndex(width, x, y);
+                    var r = imageData[pixIndex],
+                        g = imageData[pixIndex + 1],
+                        b = imageData[pixIndex + 2];
+                    if(r > 95 && g > 40 && b > 20 && r-b > 15 && r-g > 15) {
+                        calUtils.setPoint(imageData, width, x, y, 0);
+                    } else if(r > 200 && g > 210 && b > 170 && r - b <= 15 && r > b && g > b) {
+                        calUtils.setPoint(imageData, width, x, y, 0);
+                    } else {
+                        calUtils.setPoint(imageData, width, x, y, 255);
+                    }
+                }
+            }
+
+            this.putImageData(imageSrc, 0, 0);
+        },
+
+        // 连通性检测
+        connect : function() {
+            //pc为当前主体的颜色，bc为背景色
+            var pc = 255-this.back,
+                bc = this.back;
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+
+            var tagMap = {};
+            var mapAdd = function(tagMap, key, value) {
+                if(tagMap[key]) {
+                    tagMap[key].push(value);
+                } else {
+                    tagMap[key] = [value];
+                }
+            };
+
+
+            var tagList = [];
+            for(var x = 0 ; x < width ; x++) {
+                tagList[x] = [];
+                for(var y = 0 ; y < height  ; y++) {
+                    
+                    var curColor = calUtils.getPoint(imageData, width, x, y);
+                    if(curColor == pc) {
+                        tagList[x][y] = 1;
+                    } else {
+                        tagList[x][y] = 0;
+                    }
+                }
+            }
+
+            var nowTag = 1;
+            for(var x = 1 ; x < width-1 ; x++) {
+                for(var y = 1 ; y < height-1 ; y++) {
+                    if(tagList[x][y] == 0) {
+                        continue;
+                    } else if (tagList[x][y-1] > 0 && (tagList[x-1][y] == tagList[x][y-1] || tagList[x-1][y] == 0)) {
+                        tagList[x][y] = tagList[x][y-1];
+                        //将坐标 y，x添加到hash表中
+                        mapAdd(tagMap, tagList[x][y], [x,y]);
+                    } else if(tagList[x-1][y]>0 && tagList[x][y-1]==0) {
+                        tagList[x][y] = tagList[x-1][y];
+                        mapAdd(tagMap, tagList[x][y], [x,y]);
+                    } else if(tagList[x][y-1]!=tagList[x-1][y] && tagList[x][y-1]>0 && tagList[x-1][y]>0) {
+                        var temp = tagList[x-1][y];
+                        tagMap[tagList[x][y-1]] = tagMap[tagList[x][y-1]].concat(tagMap[tagList[x-1][y]]);
+                        delete tagMap[tagList[x-1][y]];
+                        for( i = 0 ; i < width ; i++) {
+                            for(j = 0 ; j < height ; j++) {
+                                if(tagList[i][j] == temp) {
+                                    tagList[i][j] = tagList[x][y-1];
+                                }
+                            }
+                        }
+
+                        tagList[x][y] = tagList[x][y-1];
+                        mapAdd(tagMap, tagList[x][y], [x,y]);
+
+                    } else {
+                        nowTag += 1;
+                        tagList[x][y] = nowTag;
+                        mapAdd(tagMap, nowTag, [x, y]);
+                    }
+                }
+            }
+            for(var i in tagMap) {
+                if(tagMap[i].length < 300) {
+                    delete tagMap[i];
+                }
+            }
+            this.tagMap = tagMap;
+        },
+
+        makeRect : function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            
+            var ctx = this.canvas.getContext('2d');
+            ctx.strokeStyle = 'red';
+            for(var item in this.tagMap) {
+                var minx = maxx = this.tagMap[item][0][0],
+                    miny = maxy = this.tagMap[item][0][1];
+                for(var index in this.tagMap[item]) {
+                    var nowX = this.tagMap[item][index][0];
+                    var nowY = this.tagMap[item][index][1];
+                    minx = nowX < minx ? nowX : minx;
+                    miny = nowY < miny ? nowY : miny;
+                    maxx = nowX > maxx ? nowX : maxx;
+                    maxy = nowY > maxy ? nowY : maxy;
+                }
+                console.log( "min("+minx,miny+")","width:"+(maxx-minx),"height:"+(maxy-miny));
+                ctx.strokeRect(minx, miny, maxx-minx, maxy-miny);
+            }
+
+            var imageSrc = this.getImageData(0, 0, width, height),
+                imageData = imageSrc.data;
+            var colors  = [[255,0,0],[255,255,0], [0,255,0]];
+            var i = 0;
+            for(var item in this.tagMap) {
+                for(var listItem in this.tagMap[item]){
+                    calUtils.setPoint(imageData, width, this.tagMap[item][listItem][0], this.tagMap[item][listItem][1], 170);
+                    var index = calUtils.getIndex(width, this.tagMap[item][listItem][0], this.tagMap[item][listItem][1]);
+                    imageData[index] = colors[i][0];    
+                    imageData[index+1] = colors[i][1];    
+                    imageData[index+2] = colors[i][2];    
+                }
+                i++;
+            }
+
+            this.putImageData(imageSrc, 0, 0);
+        },
+        
+        getRects : function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            this.rectsList = [];
+            for(var item in this.tagMap) {
+                var minx = maxx = this.tagMap[item][0][0],
+                    miny = maxy = this.tagMap[item][0][1];
+                for(var index in this.tagMap[item]) {
+                    var nowX = this.tagMap[item][index][0];
+                    var nowY = this.tagMap[item][index][1];
+                    minx = nowX < minx ? nowX : minx;
+                    miny = nowY < miny ? nowY : miny;
+                    maxx = nowX > maxx ? nowX : maxx;
+                    maxy = nowY > maxy ? nowY : maxy;
+                }
+                console.log( "min("+minx,miny+")","width:"+(maxx-minx),"height:"+(maxy-miny));
+                var rect = [minx,miny,maxx-minx,maxy-miny];
+                this.rectsList.push(rect);
+            }
+        },
+
+        addRects : function() {
+            var width = this.canvas.width,
+                height = this.canvas.height;
+            
+            
+            var ctx = this.canvas.getContext('2d');
+            ctx.strokeStyle = 'red';
+            for(var i in this.rects){
+                // console.log(this.rects[i]);
+                if(this.rects[i][3] / this.rects[i][2] > 1 && this.rects[i][3] / this.rects[i][2] < 3) {
+
+                    ctx.strokeRect(this.rects[i][0], this.rects[i][1], this.rects[i][2], this.rects[i][3])
+                }
+            }
         }
     }
 });
