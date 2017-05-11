@@ -381,43 +381,6 @@ $(function() {
             }
 
             case 'colorRect': {
-
-                // var demoContainer = document.querySelector('.face-container');
-
-                // //肤色颜色判定
-                // tracking.ColorTracker.registerColor('faceYellow', function(r, g, b) {
-                //     if(r > 95 && g > 40 && b > 20 && r-b > 15 && r-g > 15) {
-                //         return true;
-                //     } else if(r > 200 && g > 210 && b > 170 && r - b <= 15 && r > b && g > b) {
-                //         return true;
-                //     } else {
-                //         return false;
-                //     }
-                // });
-
-                // var tracker = new tracking.ColorTracker('faceYellow');
-                // tracker.on('track', function(event) {
-                //     event.data.forEach(function(rect) {
-                //         //长宽的限制
-                //         var scale = rect.height / rect.width;
-                //         if(scale > 1 && scale < 2) {
-                //             plot(rect.x, rect.y, rect.width, rect.height, '#FFFFFF');
-                //         }
-                //     });
-                // });
-                // tracking.track('#afterImg', tracker);
-                // //标识方框
-                // var plot = function(x, y, w, h, color) {
-                //     var rect = document.createElement('div');
-                //     document.querySelector('.face-container').appendChild(rect);
-                //     rect.classList.add('rect');
-                //     rect.style.border = '2px solid ' + color;
-                //     rect.style.width = w + 'px';
-                //     rect.style.height = h + 'px';
-                //     rect.style.left = (afterImg.offsetLeft + x) + 'px';
-                //     rect.style.top = (afterImg.offsetTop + y) + 'px';
-                // };
-                
                 var rects = [];
                 $AI(preImg).ctx(calUtils.faceColorGet).ctx(function(){ this.back=255; }).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgCorrode).ctx(calUtils.imgSwell).ctx(calUtils.imgSwell).ctx(calUtils.connect).ctx(calUtils.getRects).ctx(function(){rects = this.rectsList;});
                 $AI(preImg).ctx(function(){this.rects = rects;}).ctx(calUtils.addRects).replace(afterImg);                
