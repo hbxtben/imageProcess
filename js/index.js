@@ -804,6 +804,7 @@ $(function() {
             }
             this.putImageData(imageData, 0, 0);
         },
+
         JHChange: function() {
                 //记录每个灰度值的个数
             var numList = [],
@@ -845,6 +846,7 @@ $(function() {
             }
             this.putImageData(imageData, 0, 0);
         },
+
         zftShow : function () {
             var afterimg = document.getElementById("afterImg");
             var hdData = [];
